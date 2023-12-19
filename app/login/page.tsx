@@ -14,6 +14,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-zinc-900">
           <Image
             src={`/bg-paragliding${rand}.JPG`}
+            priority={true}
             className="object-cover w-full h-full overflow-hidden"
             width="683"
             height="1000"

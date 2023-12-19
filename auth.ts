@@ -36,6 +36,8 @@ export const config = {
               id: "1",
               username: process.env.AUTH_USERNAME,
               name: "Gianluca",
+              email: "gian.dnt@gmail.com",
+              image: "avatar.jpeg",
             };
             return authUser;
           }
