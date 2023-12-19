@@ -1,29 +1,4 @@
-// "use client";
-// import { useSession, signOut } from "next-auth/react";
-// import SessionData from "@/components/session-data";
-
-// export default function Dashboard() {
-//   const { data: session, status } = useSession();
-//   return (
-//     <div>
-//       <h1>Hello, Dashboard Page!</h1>
-//       <Button
-//         onClick={() => signOut()}
-//       >
-//         Sign Out
-//       </Button>
-//       {status === "loading" ? (
-//         <div>Loading...</div>
-//       ) : (
-//         <SessionData session={session} />
-//       )}
-//     </div>
-//   );
-// }
-
 import { Metadata } from "next";
-import Image from "next/image";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -40,7 +15,7 @@ import { RecentSales } from "@/components/recent-sales";
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "Example dashboard app built using the components.",
+  description: "GSpace Dashboard",
 };
 
 export default function DashboardPage() {
@@ -50,7 +25,7 @@ export default function DashboardPage() {
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
         <div className="flex items-center space-x-2">
           <CalendarDateRangePicker />
-          <Button>Download</Button>
+          <Button>Search</Button>
         </div>
       </div>
       <Tabs defaultValue="overview" className="space-y-4">
