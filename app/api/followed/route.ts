@@ -1,6 +1,6 @@
 import { Db } from "mongodb";
 import { z } from "zod";
-import mongoClient from "@/lib/mongodb";
+import { getDatabase } from "@/lib/mongodb";
 import { Users } from "@/lib/schemas";
 import { User, Report } from "@/types";
 
@@ -76,21 +76,17 @@ export async function saveFollowedUsers(db: Db, users: User[]) {
     }
 
     if (followedUser.follows_viewer && !user.follows_viewer) {
-      report.new_unfollowers.push(user);
+      const newUser = { ...user, updated_at: now, unfollowed_me_at: now };
+      report.new_unfollowers.push(newUser);
       await db
         .collection("followed")
-        .updateOne(
-          { id: user.id },
-          { $set: { ...user, updated_at: now, unfollowed_me_at: now } }
-        );
+        .updateOne({ id: user.id }, { $set: newUser });
     } else {
-      report.new_followers.push(user);
+      const newUser = { ...user, updated_at: now, followed_me_at: now };
+      report.new_followers.push(newUser);
       await db
         .collection("followed")
-        .updateOne(
-          { id: user.id },
-          { $set: { ...user, updated_at: now, followed_me_at: now } }
-        );
+        .updateOne({ id: user.id }, { $set: newUser });
     }
   }
 
@@ -130,15 +126,3 @@ export const config = {
     },
   },
 };
-
-async function getDatabase() {
-  const mongo = await mongoClient;
-  const db = mongo?.db(process.env.DB_NAME);
-  if (!db) {
-    return Response.json(
-      { error: "DB not available" },
-      { status: 500, statusText: "Internal Server Error" }
-    );
-  }
-  return db;
-}

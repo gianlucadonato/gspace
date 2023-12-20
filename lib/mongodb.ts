@@ -29,3 +29,15 @@ if (process.env.NODE_ENV !== "test") {
 // Export a module-scoped MongoClient promise. By doing this in a
 // separate module, the client can be shared across functions.
 export default clientPromise;
+
+export async function getDatabase() {
+  const mongo = await clientPromise;
+  const db = mongo?.db(process.env.DB_NAME);
+  if (!db) {
+    return Response.json(
+      { error: "DB not available" },
+      { status: 500, statusText: "Internal Server Error" }
+    );
+  }
+  return db;
+}

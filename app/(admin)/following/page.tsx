@@ -5,7 +5,6 @@ import { User } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Search } from "@/components/search";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
@@ -13,7 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { format } from "date-fns";
+import { UsersList } from "@/components/users-list";
+
 
 export default function FollowingPage() {
   const [followedUsers, setFollowedUsers] = useState<User[]>([]);
@@ -37,7 +37,6 @@ export default function FollowingPage() {
       const res = await fetch("/api/followed");
       if (res.status === 200) {
         const followed = await res.json();
-        console.log("🐞 > followed:", followed);
         setFollowedUsers(followed);
       }
       setIsLoading(false);
@@ -108,33 +107,33 @@ export default function FollowingPage() {
                 <TabsTrigger value="non-following-you">
                   Non Following you
                 </TabsTrigger>
-                <TabsTrigger value="unfollowed">Unfollowed by me</TabsTrigger>
+                <TabsTrigger value="unfollowed-by-me">Unfollowed by me</TabsTrigger>
                 <TabsTrigger value="unfollowers">Unfollowers</TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="following-you" className="space-y-8">
+            <TabsContent value="following-you">
               <UsersList
                 users={followedUsers.filter(
                   filterUsers((user) => !!user.follows_viewer)
                 )}
               />
             </TabsContent>
-            <TabsContent value="non-following-you" className="space-y-8">
+            <TabsContent value="non-following-you">
               <UsersList
                 users={followedUsers.filter(
                   filterUsers((user) => !user.follows_viewer)
                 )}
               />
             </TabsContent>
-            <TabsContent value="unfollowed-by-me" className="space-y-8">
+            <TabsContent value="unfollowed-by-me">
               <UsersList
                 users={followedUsers.filter(
                   filterUsers((user) => !!user.unfollowed_at)
                 )}
               />
             </TabsContent>
-            <TabsContent value="unfollowers" className="space-y-8">
+            <TabsContent value="unfollowers">
               <UsersList
                 users={followedUsers.filter(
                   filterUsers((user) => !!user.unfollowed_me_at)
@@ -148,33 +147,4 @@ export default function FollowingPage() {
   );
 }
 
-function UsersList({ users }: { users: User[] }) {
-  return (
-    <>
-      {users.map((user) => (
-        <a
-          key={user.id}
-          className="block"
-          href={`https://www.instagram.com/${user.username}`}
-          target="_blank"
-        >
-          <div  className="flex items-center">
-            <Avatar className="h-9 w-9">
-              <AvatarImage src={user.profile_pic_url} alt="Avatar" />
-              <AvatarFallback>{user.full_name.slice(0, 1)}</AvatarFallback>
-            </Avatar>
-            <div className="ml-4 space-y-1">
-              <p className="text-sm font-medium leading-none">
-                {user.full_name}
-              </p>
-              <p className="text-sm text-muted-foreground">{user.username}</p>
-            </div>
-            <div className="ml-auto text-muted-foreground text-xs">
-              {format(new Date(user.created_at || ""), "dd/MM/yy")}
-            </div>
-          </div>
-        </a>
-      ))}
-    </>
-  );
-}
+

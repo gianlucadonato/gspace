@@ -1,4 +1,6 @@
-import { Metadata } from "next";
+"use client";
+
+import { RocketIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,38 +10,64 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
+import { Skeleton } from "@/components/ui/skeleton";
+import { UsersList } from "@/components/users-list";
 import { CalendarDateRangePicker } from "@/components/date-range-picker";
 import { Overview } from "@/components/overview";
 import { RecentSales } from "@/components/recent-sales";
-
-export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "GSpace Dashboard",
-};
+import { useEffect, useState } from "react";
+import { Report } from "@/types";
+import { format } from "date-fns";
 
 export default function DashboardPage() {
+  const [reports, setReports] = useState<Report[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Report>();
+  const [openDialog, setOpenDialog] = useState(false);
+
+  useEffect(() => {
+    async function getReports() {
+      setIsLoading(true);
+      const res = await fetch("/api/reports");
+      if (res.status === 200) {
+        const body = await res.json();
+        console.log("🐞 > body:", body);
+        setReports(body);
+      }
+      setIsLoading(false);
+    }
+    getReports();
+  }, []);
+
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="md:flex items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 mt-6 md:mt-0">
           <CalendarDateRangePicker />
-          <Button>Search</Button>
         </div>
       </div>
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics" disabled>
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="reports" disabled>
-            Reports
-          </TabsTrigger>
-          <TabsTrigger value="notifications" disabled>
-            Notifications
-          </TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="fetch-data">Fetch Data</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -167,7 +195,151 @@ export default function DashboardPage() {
             </Card>
           </div>
         </TabsContent>
+        <TabsContent value="reports">
+          <Card>
+            <CardHeader>
+              <CardTitle>Reports</CardTitle>
+              <CardDescription>
+                There are {reports.length} reports.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="w-full h-[30px]" />
+                  <Skeleton className="w-full h-[30px]" />
+                  <Skeleton className="w-full h-[30px]" />
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>followed by viewer</TableHead>
+                      <TableHead>follows viewer</TableHead>
+                      <TableHead>new followed</TableHead>
+                      <TableHead>new unfollowed</TableHead>
+                      <TableHead>new followers</TableHead>
+                      <TableHead>new unfollowers</TableHead>
+                      <TableHead className="text-right">Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {reports.map((report) => (
+                      <TableRow
+                        key={report.created_at}
+                        onClick={() => {
+                          setSelectedReport(report);
+                          setOpenDialog(true);
+                        }}
+                      >
+                        <TableCell>{report.followed_by_viewer}</TableCell>
+                        <TableCell>{report.follows_viewer}</TableCell>
+                        <TableCell>{report.new_followed.length}</TableCell>
+                        <TableCell>{report.new_unfollowed.length}</TableCell>
+                        <TableCell
+                          className={
+                            report.new_followers.length > 0
+                              ? "text-lime-500"
+                              : ""
+                          }
+                        >
+                          {report.new_followers.length}
+                        </TableCell>
+                        <TableCell
+                          className={
+                            report.new_unfollowers.length > 0
+                              ? "text-red-500"
+                              : ""
+                          }
+                        >
+                          {report.new_unfollowers.length}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {format(
+                            new Date(report.created_at || ""),
+                            "dd/MM/yy HH:mm"
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="fetch-data">
+          <div className="flex w-full justify-center p-8">
+            <Button variant="destructive">
+              <RocketIcon className="mr-2 h-4 w-4" />
+              Fetch Data
+            </Button>
+          </div>
+        </TabsContent>
       </Tabs>
+
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent className="overflow-hidden h-[90%]">
+          <DialogHeader>
+            <DialogTitle>Report Details</DialogTitle>
+            <DialogDescription>
+              {selectedReport
+                ? format(new Date(selectedReport?.created_at), "dd/MM/yy HH:mm")
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-y-scroll space-y-4">
+            {!!selectedReport?.new_followers.length && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    New followers ({selectedReport?.new_followers.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UsersList users={selectedReport?.new_followers} />
+                </CardContent>
+              </Card>
+            )}
+            {!!selectedReport?.new_unfollowers.length && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    New unfollowers ({selectedReport?.new_unfollowers.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UsersList users={selectedReport?.new_unfollowers} />
+                </CardContent>
+              </Card>
+            )}
+            {!!selectedReport?.new_followed.length && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    New followed ({selectedReport?.new_followed.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UsersList users={selectedReport?.new_followed} />
+                </CardContent>
+              </Card>
+            )}
+            {!!selectedReport?.new_unfollowed.length && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    New unfollowed ({selectedReport?.new_unfollowed.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UsersList users={selectedReport?.new_unfollowed} />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
