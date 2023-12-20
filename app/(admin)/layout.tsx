@@ -9,8 +9,8 @@ export default function DashboardLayout({
 }) {
   return (
     <>
-      <div className="md:hidden">TODO: Mobile version</div>
-      <div className="hidden flex-col md:flex">
+      {/* <div className="md:hidden">TODO: Mobile version</div> */}
+      <div className="flex-col md:flex">
         <div className="border-b">
           <div className="flex h-16 items-center px-4">
             <MainNav className="mx-6" />
