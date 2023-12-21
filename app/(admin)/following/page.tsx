@@ -12,8 +12,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { UsersList } from "@/components/users-list";
-
 
 export default function FollowingPage() {
   const [followedUsers, setFollowedUsers] = useState<User[]>([]);
@@ -45,7 +50,7 @@ export default function FollowingPage() {
   }, []);
 
   return (
-    <div className="flex-1 p-8 pt-6">
+    <div className="flex-1 p-4 md:p-8 pt-6">
       <div className="md:flex items-center md:justify-between">
         <h2 className="text-3xl font-bold tracking-tight">
           Following ({followedUsers.length})
@@ -68,13 +73,12 @@ export default function FollowingPage() {
           </div>
         ) : (
           <Tabs defaultValue="following-you" onValueChange={setCurrentTab}>
-            <div className="md:hidden mb-8">
+            <div className="md:hidden mb-6">
               <TabsList asChild>
                 <DropdownMenu>
                   <DropdownMenuTrigger>
                     <Button variant="secondary" className="w-full">
-                      <MixerHorizontalIcon className="mr-2 h-4 w-4" /> Filter:{" "}
-                      {currentTab}
+                      <MixerHorizontalIcon className="mr-2 h-4 w-4" /> Filter
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
@@ -101,45 +105,56 @@ export default function FollowingPage() {
               </TabsList>
             </div>
 
-            <div className="hidden md:block w-full mb-8">
+            <div className="hidden md:block w-full mb-6">
               <TabsList>
                 <TabsTrigger value="following-you">Following you</TabsTrigger>
                 <TabsTrigger value="non-following-you">
                   Non Following you
                 </TabsTrigger>
-                <TabsTrigger value="unfollowed-by-me">Unfollowed by me</TabsTrigger>
+                <TabsTrigger value="unfollowed-by-me">
+                  Unfollowed by me
+                </TabsTrigger>
                 <TabsTrigger value="unfollowers">Unfollowers</TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="following-you">
-              <UsersList
-                users={followedUsers.filter(
-                  filterUsers((user) => !!user.follows_viewer)
-                )}
-              />
-            </TabsContent>
-            <TabsContent value="non-following-you">
-              <UsersList
-                users={followedUsers.filter(
-                  filterUsers((user) => !user.follows_viewer)
-                )}
-              />
-            </TabsContent>
-            <TabsContent value="unfollowed-by-me">
-              <UsersList
-                users={followedUsers.filter(
-                  filterUsers((user) => !!user.unfollowed_at)
-                )}
-              />
-            </TabsContent>
-            <TabsContent value="unfollowers">
-              <UsersList
-                users={followedUsers.filter(
-                  filterUsers((user) => !!user.unfollowed_me_at)
-                )}
-              />
-            </TabsContent>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">
+                  {formatTitle(currentTab)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                <TabsContent value="following-you">
+                  <UsersList
+                    users={followedUsers.filter(
+                      filterUsers((user) => !!user.follows_viewer)
+                    )}
+                  />
+                </TabsContent>
+                <TabsContent value="non-following-you">
+                  <UsersList
+                    users={followedUsers.filter(
+                      filterUsers((user) => !user.follows_viewer)
+                    )}
+                  />
+                </TabsContent>
+                <TabsContent value="unfollowed-by-me">
+                  <UsersList
+                    users={followedUsers.filter(
+                      filterUsers((user) => !!user.unfollowed_at)
+                    )}
+                  />
+                </TabsContent>
+                <TabsContent value="unfollowers">
+                  <UsersList
+                    users={followedUsers.filter(
+                      filterUsers((user) => !!user.unfollowed_me_at)
+                    )}
+                  />
+                </TabsContent>
+              </CardContent>
+            </Card>
           </Tabs>
         )}
       </div>
@@ -148,3 +163,8 @@ export default function FollowingPage() {
 }
 
 
+function formatTitle(value: string) {
+  if (!value) return value;
+  const title = value[0].toUpperCase() + value.substring(1)
+  return title.replaceAll('-', ' ');
+}

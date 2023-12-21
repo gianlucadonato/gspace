@@ -15,25 +15,18 @@ export const GET = async (req: Request) => {
 
 export const POST = async (req: Request) => {
   try {
-    const body = await req.json();
-    const db = await getDatabase();
-    const users = Users.parse(JSON.parse(body));
     console.time("exec_time");
+    const body = await req.json();
+    const users = Users.parse(body);
+    const db = await getDatabase();
     await saveFollowedUsers(db, users);
     console.timeEnd("exec_time");
     return Response.json({ msg: `Processed ${users.length} followed users` });
   } catch (error) {
+    console.log("🐞 > error:", error);
     if (error instanceof z.ZodError) {
       return Response.json({ error }, { status: 400 });
     }
     return Response.json({ error }, { status: 500 });
   }
 };
-
-// export const config = {
-//   api: {
-//     bodyParser: {
-//       sizeLimit: "4mb",
-//     },
-//   },
-// };

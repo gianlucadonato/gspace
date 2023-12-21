@@ -6,7 +6,7 @@ import {
   getFollowedUsers,
   saveFollowedUsers,
 } from "@/app/actions";
-import { getReports } from "@/app/api/reports/route";
+import { getReports } from "@/app/actions";
 import { UserSchema } from "@/lib/schemas";
 
 describe("followed users", () => {
