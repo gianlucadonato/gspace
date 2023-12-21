@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { Db, MongoClient } from "mongodb";
 
 let client;
 let clientPromise: Promise<MongoClient> | undefined;
@@ -30,14 +30,11 @@ if (process.env.NODE_ENV !== "test") {
 // separate module, the client can be shared across functions.
 export default clientPromise;
 
-export async function getDatabase() {
+export const getDatabase = async (): Promise<Db> => {
   const mongo = await clientPromise;
   const db = mongo?.db(process.env.DB_NAME);
   if (!db) {
-    return Response.json(
-      { error: "DB not available" },
-      { status: 500, statusText: "Internal Server Error" }
-    );
+    throw new Error("Unable to connect to DB");
   }
   return db;
-}
+};

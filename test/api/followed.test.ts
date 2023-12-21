@@ -1,8 +1,11 @@
 import { generateMock } from "@anatine/zod-mock";
 import { formatISO, sub } from "date-fns";
 import { Db, MongoClient } from "mongodb";
-import { getFollowedUsers, saveFollowedUsers } from "@/app/api/followed/route";
-import { getFollowedUser } from "@/app/api/followed/[id]/route";
+import {
+  getFollowedUser,
+  getFollowedUsers,
+  saveFollowedUsers,
+} from "@/app/actions";
 import { getReports } from "@/app/api/reports/route";
 import { UserSchema } from "@/lib/schemas";
 
