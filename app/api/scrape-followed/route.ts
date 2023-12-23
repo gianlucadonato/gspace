@@ -7,4 +7,4 @@ export const POST = auth(async (req) => {
   }
   const followedUsers = await scrapeFollowedUsers();
   return Response.json(followedUsers);
-});
+}) as any;

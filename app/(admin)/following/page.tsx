@@ -42,6 +42,7 @@ export default function FollowingPage() {
       const res = await fetch("/api/followed");
       if (res.status === 200) {
         const followed = await res.json();
+        console.log('🐞 > followed:', followed);
         setFollowedUsers(followed);
       }
       setIsLoading(false);
