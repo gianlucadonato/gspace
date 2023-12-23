@@ -21,6 +21,10 @@ export async function getFollowedUsers(db: Db) {
 }
 
 export async function saveFollowedUsers(db: Db, users: User[]) {
+  if (!Array.isArray(users)) {
+    throw new Error("Invalid users list");
+  }
+
   const now = new Date().toISOString();
   const report: Report = {
     followed_by_viewer: 0,
@@ -108,4 +112,6 @@ export async function saveFollowedUsers(db: Db, users: User[]) {
   // Save Report
   await db.collection("reports").insertOne(report);
   console.log("🐞 > Report saved!");
+
+  return { users, report };
 }
