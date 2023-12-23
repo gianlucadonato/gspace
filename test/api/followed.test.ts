@@ -93,6 +93,57 @@ describe("followed users", () => {
     expect(reports[0].new_followers[0].username).toBe(user.username);
   });
 
+  it("you unfollow an user that is still following you", async () => {
+    const user = {
+      ...generateMock(UserSchema),
+      followed_by_viewer: true,
+    };
+    await saveFollowedUsers(db, [user]);
+    user.followed_by_viewer = false;
+    await saveFollowedUsers(db, [user]);
+    const reports = await getReports(db);
+    expect(reports[0].new_unfollowed.length).toBe(1);
+    expect(reports[0].new_unfollowed[0].username).toBe(user.username);
+
+    const followedUser = await getFollowedUser(db, { id: user.id });
+    expect(followedUser?.unfollowed_at).toBeTruthy();
+  });
+
+  it("you unfollow an user that is no longer following you", async () => {
+    const user = {
+      ...generateMock(UserSchema),
+      followed_by_viewer: true,
+    };
+    await saveFollowedUsers(db, [user]);
+    user.follows_viewer = false;
+    user.followed_by_viewer = false;
+    await saveFollowedUsers(db, [user]);
+    const reports = await getReports(db);
+    expect(reports[0].new_unfollowed.length).toBe(1);
+    expect(reports[0].new_unfollowed[0].username).toBe(user.username);
+
+    const followedUser = await getFollowedUser(db, { id: user.id });
+    expect(followedUser?.unfollowed_at).toBeTruthy();
+  });
+
+  it("should detect only users you unfollowed since the last report", async () => {
+    const user = {
+      ...generateMock(UserSchema),
+      followed_by_viewer: true,
+      follows_viewer: true,
+    };
+    await saveFollowedUsers(db, [user]);
+    user.follows_viewer = false;
+    user.followed_by_viewer = false;
+    await saveFollowedUsers(db, [user]);
+    const reports = await getReports(db);
+    expect(reports[0].new_unfollowed.length).toBe(1);
+    expect(reports[0].new_unfollowed[0].username).toBe(user.username);
+    await saveFollowedUsers(db, [generateMock(UserSchema)]);
+    const newReports = await getReports(db);
+    expect(newReports[0].new_unfollowed.length).toBe(0);
+  });
+
   it("should update the user if nothing changes", async () => {
     const user = { ...generateMock(UserSchema), updated_at: yesterday };
     await saveFollowedUsers(db, [user]);

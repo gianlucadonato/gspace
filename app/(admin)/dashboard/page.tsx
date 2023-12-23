@@ -31,6 +31,7 @@ import { UsersList } from "@/components/users-list";
 import { CalendarDateRangePicker } from "@/components/date-range-picker";
 import { Overview } from "@/components/overview";
 import { RecentSales } from "@/components/recent-sales";
+import { Spinner } from "@/components/spinner";
 import { useEffect, useState } from "react";
 import { Report } from "@/types";
 import { format } from "date-fns";
@@ -38,6 +39,8 @@ import { format } from "date-fns";
 export default function DashboardPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isScraping, setIsScraping] = useState(false);
+  const [isUploading, setIsUploding] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report>();
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -47,13 +50,41 @@ export default function DashboardPage() {
       const res = await fetch("/api/reports");
       if (res.status === 200) {
         const body = await res.json();
-        console.log("🐞 > body:", body);
+        console.log("🐞 > reports:", body);
         setReports(body);
       }
       setIsLoading(false);
     }
     getReports();
   }, []);
+
+  const scrapeFollowed = async () => {
+    setIsScraping(true);
+    const res = await fetch("/api/scrape-followed", { method: "POST" });
+    if (res.status === 200) {
+      const body = await res.json();
+      console.log('🐞 > scrapeFollowed:', body);
+      setIsScraping(false);
+      return body;
+    }
+    setIsScraping(false);
+  };
+
+  const uploadFollowed = async (body: any) => {
+    if (!body) return;
+    setIsUploding(true);
+    const res = await fetch("/api/followed", { method: "POST", body: JSON.stringify(body) });
+    if (res.status === 200) {
+      const body = await res.json();
+      console.log('🐞 > uploadFollowed:', body);
+    }
+    setIsUploding(false);
+  };
+
+  const createReport = async () => {
+    const followed = await scrapeFollowed();
+    await uploadFollowed(followed)
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -270,10 +301,27 @@ export default function DashboardPage() {
         </TabsContent>
         <TabsContent value="fetch-data">
           <div className="flex w-full justify-center p-8">
-            <Button variant="destructive">
-              <RocketIcon className="mr-2 h-4 w-4" />
-              Fetch Data
-            </Button>
+            {isScraping && (
+              <div>
+                <div className="mx-auto w-8 h-8"><Spinner /></div>
+                <div className="mt-4">Scraping data...</div>
+              </div>
+            )}
+
+            {isUploading && (
+              <div>
+                <div className="mx-auto w-8 h-8"><Spinner /></div>
+                <div className="mt-4">Scraping data ✅</div>
+                <div className="mt-4">Uploading data...</div>
+              </div>
+            )} 
+            
+            {!isScraping && !isUploading && (
+              <Button onClick={() => createReport()} variant="destructive">
+                <RocketIcon className="mr-2 h-4 w-4" />
+                Fetch Data
+              </Button>
+            )}
           </div>
         </TabsContent>
       </Tabs>

@@ -21,7 +21,7 @@ export type Report = {
   followed_by_viewer: number;
   follows_viewer: number;
   new_followed: User[];
-  new_unfollowed: WithId<User>[];
+  new_unfollowed: User[];
   new_followers: User[];
   new_unfollowers: User[];
   created_at: string;

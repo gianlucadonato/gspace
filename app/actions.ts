@@ -33,9 +33,7 @@ export async function saveFollowedUsers(db: Db, users: User[]) {
   };
   console.log(`🐞 > Received ${users.length} followed users`);
   for (const [idx, user] of users.entries()) {
-    const followedUser = await db
-      .collection("followed")
-      .findOne({ id: user.id });
+    const oldUser = await db.collection("followed").findOne({ id: user.id });
     report.followed_by_viewer += user.followed_by_viewer ? 1 : 0;
     report.follows_viewer += user.follows_viewer ? 1 : 0;
 
@@ -43,7 +41,7 @@ export async function saveFollowedUsers(db: Db, users: User[]) {
       console.log(`🐞 > Processed ${idx + 1}/${users.length} users..`);
     }
 
-    if (!followedUser) {
+    if (!oldUser) {
       await db.collection("followed").insertOne({ ...user, created_at: now });
       report.new_followed.push({
         ...user,
@@ -52,16 +50,25 @@ export async function saveFollowedUsers(db: Db, users: User[]) {
       continue;
     }
 
-    if (followedUser.follows_viewer === user.follows_viewer) {
+    if (oldUser.follows_viewer === user.follows_viewer) {
+      const newUser = { ...user, updated_at: now };
+      if (oldUser.followed_by_viewer !== user.followed_by_viewer) {
+        newUser.unfollowed_at = now;
+        report.new_unfollowed.push(newUser);
+      }
       await db
         .collection("followed")
-        .updateOne({ id: user.id }, { $set: { ...user, updated_at: now } });
+        .updateOne({ id: user.id }, { $set: newUser });
       continue;
     }
 
-    if (followedUser.follows_viewer && !user.follows_viewer) {
+    if (oldUser.follows_viewer && !user.follows_viewer) {
       const newUser = { ...user, updated_at: now, unfollowed_me_at: now };
       report.new_unfollowers.push(newUser);
+      if (oldUser.followed_by_viewer !== user.followed_by_viewer) {
+        newUser.unfollowed_at = now;
+        report.new_unfollowed.push(newUser);
+      }
       await db
         .collection("followed")
         .updateOne({ id: user.id }, { $set: newUser });
@@ -78,7 +85,7 @@ export async function saveFollowedUsers(db: Db, users: User[]) {
   const userIds = users.map((user) => user.id);
   const unfollowed = await db
     .collection<User>("followed")
-    .find({ id: { $nin: userIds } })
+    .find({ id: { $nin: userIds }, unfollowed_at: { $exists: false } })
     .toArray();
 
   if (unfollowed.length) {
