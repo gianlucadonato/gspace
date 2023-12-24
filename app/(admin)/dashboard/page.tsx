@@ -30,11 +30,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UsersList } from "@/components/users-list";
 import { CalendarDateRangePicker } from "@/components/date-range-picker";
 import { Overview } from "@/components/overview";
-import { RecentSales } from "@/components/recent-sales";
 import { Spinner } from "@/components/spinner";
 import { useEffect, useState } from "react";
 import { Report } from "@/types";
 import { format } from "date-fns";
+import { getDateDifference } from "@/lib/utils";
 
 export default function DashboardPage() {
   const [reports, setReports] = useState<Report[]>([]);
@@ -49,6 +49,7 @@ export default function DashboardPage() {
       const res = await fetch("/api/reports");
       if (res.status === 200) {
         const body = await res.json();
+        console.log("🐞 > body:", body);
         setReports(body);
       }
       setIsLoading(false);
@@ -66,6 +67,10 @@ export default function DashboardPage() {
     }
     setIsScraping(false);
   };
+
+  if (!reports?.length) {
+    return <div>No reports!</div>;
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -85,9 +90,7 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Revenue
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Following</CardTitle>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -102,17 +105,28 @@ export default function DashboardPage() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$45,231.89</div>
+                <div className="text-2xl font-bold">
+                  {reports[0].followed_by_viewer}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  +20.1% from last month
+                  {reports[0].followed_by_viewer -
+                    reports[reports.length - 1].followed_by_viewer >
+                  0
+                    ? "+"
+                    : "-"}
+                  {reports[0].followed_by_viewer -
+                    reports[reports.length - 1].followed_by_viewer}{" "}
+                  since{" "}
+                  {getDateDifference(
+                    reports[0].created_at,
+                    reports[reports.length - 1].created_at
+                  )}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Subscriptions
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Followers</CardTitle>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -129,15 +143,30 @@ export default function DashboardPage() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+2350</div>
+                <div className="text-2xl font-bold">
+                  {reports[0].follows_viewer}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  +180.1% from last month
+                  {reports[0].follows_viewer -
+                    reports[reports.length - 1].follows_viewer >
+                  0
+                    ? "+"
+                    : "-"}
+                  {reports[0].follows_viewer -
+                    reports[reports.length - 1].follows_viewer}{" "}
+                  since{" "}
+                  {getDateDifference(
+                    reports[0].created_at,
+                    reports[reports.length - 1].created_at
+                  )}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Sales</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Unfollowers
+                </CardTitle>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -153,16 +182,29 @@ export default function DashboardPage() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+12,234</div>
+                <div className="text-2xl font-bold">
+                  {reports.reduce(
+                    (acc, report) => acc + report.new_unfollowers.length,
+                    0
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  +19% from last month
+                  {reports.reduce(
+                    (acc, report) => acc + report.new_unfollowers.length,
+                    0
+                  )}{" "}
+                  since{" "}
+                  {getDateDifference(
+                    reports[0].created_at,
+                    reports[reports.length - 1].created_at
+                  )}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Now
+                  Unfollowed
                 </CardTitle>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -178,9 +220,22 @@ export default function DashboardPage() {
                 </svg>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+573</div>
+                <div className="text-2xl font-bold">
+                  {reports.reduce(
+                    (acc, report) => acc + report.new_unfollowed.length,
+                    0
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  +201 since last hour
+                  {reports.reduce(
+                    (acc, report) => acc + report.new_unfollowed.length,
+                    0
+                  )}{" "}
+                  since{" "}
+                  {getDateDifference(
+                    reports[0].created_at,
+                    reports[reports.length - 1].created_at
+                  )}
                 </p>
               </CardContent>
             </Card>
@@ -192,17 +247,6 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="pl-2">
                 <Overview />
-              </CardContent>
-            </Card>
-            <Card className="col-span-3">
-              <CardHeader>
-                <CardTitle>Recent Sales</CardTitle>
-                <CardDescription>
-                  You made 265 sales this month.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <RecentSales />
               </CardContent>
             </Card>
           </div>
