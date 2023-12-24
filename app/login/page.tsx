@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { LoginForm } from "@/components/login-form";
-import gspaceLogo from "../../public/gspace-logo.svg";
+import { Button } from "@/components/ui/button";
+import gspaceLogo from "@/public/gspace-logo.svg";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -39,7 +40,7 @@ export default function LoginPage() {
       </div>
 
       <div className="absolute top-0 w-full flex justify-center md:hidden p-10">
-        <Link href="/" className="block w-[150px]">
+        <Link href="/" className="block w-[150px] mt-[100px]">
           <Image src={gspaceLogo} alt="gspace logo" />
         </Link>
       </div>
@@ -54,6 +55,9 @@ export default function LoginPage() {
             </p>
           </div>
           <LoginForm />
+          <Link className="block w-full" href="/">
+            <Button className="w-full" variant="outline">Back to Home</Button>
+          </Link>
         </div>
       </div>
     </div>
