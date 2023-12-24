@@ -35,6 +35,7 @@ import { useEffect, useState } from "react";
 import { Report } from "@/types";
 import { format } from "date-fns";
 import { getDateDifference } from "@/lib/utils";
+import { EmptySection } from "@/components/empty-section";
 
 export default function DashboardPage() {
   const [reports, setReports] = useState<Report[]>([]);
@@ -69,7 +70,7 @@ export default function DashboardPage() {
   };
 
   if (!reports?.length) {
-    return <div>No reports!</div>;
+    return <EmptySection />;
   }
 
   return (
