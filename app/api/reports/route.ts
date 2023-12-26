@@ -16,10 +16,11 @@ export const POST = async (req: Request) => {
   try {
     const db = await getDatabase();
     const followedUsers = await scrapeFollowedUsers();
+    console.log("🐞 > followedUsers:", followedUsers.length);
     const { users } = await saveFollowedUsers(db, followedUsers);
     return Response.json({ msg: `Processed ${users.length} followed users` });
   } catch (error) {
-    console.log("🐞 > error:", JSON.stringify(error, null, 2));
+    console.log("🐞 > error:", error);
     return Response.json({ error }, { status: 500 });
   }
 };
